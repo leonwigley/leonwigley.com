@@ -1,4 +1,4 @@
-import Card from "../components/card.tsx";
+// import Card from "../components/card.tsx";
 
 export default function Home() {
   return (
@@ -49,7 +49,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div class="flex flex-wrap justify-end gap-8 w-full xl:grid xl:grid-cols-2 lg:grid lg:grid-cols-2 md:grid md:grid-cols-1  sm:grid sm:grid-cols-1 py-0 xl:py-16 lg:py-16 md:py-16 sm:py-5">
+      {/* <div class="flex flex-wrap justify-end gap-8 w-full xl:grid xl:grid-cols-2 lg:grid lg:grid-cols-2 md:grid md:grid-cols-1  sm:grid sm:grid-cols-1 py-0 xl:py-16 lg:py-16 md:py-16 sm:py-5">
         <Card
           cardLink="https://goremote.pro"
           title="GoRemote"
@@ -58,7 +58,7 @@ export default function Home() {
           img="images/GoRemote.png"
           imgAlt="Preview of the project"
         />
-      </div>
+      </div> */}
     </div>
   );
 }
