@@ -12,10 +12,7 @@ export default function Home() {
             Self-taught engineer and designer. Looking for autumn 2025
             internships.
           </p>
-          <p>
-            Becoming more creative, simple and free. Building interesting things
-            and solving problems.
-          </p>
+          <p>Building interesting things and solving problems.</p>
         </div>
 
         <div class="flex flex-col gap-4 ">
