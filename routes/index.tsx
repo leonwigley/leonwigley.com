@@ -49,15 +49,15 @@ export default function Home() {
         </div>
       </div>
 
-      <div class="flex flex-wrap justify-end gap-8 py-16 w-full xl:grid xl:grid-cols-2 lg:grid lg:grid-cols-2 md:grid md:grid-cols-1  sm:grid sm:grid-cols-1">
-        {/* <Card
+      <div class="flex flex-wrap justify-end gap-8 w-full xl:grid xl:grid-cols-2 lg:grid lg:grid-cols-2 md:grid md:grid-cols-1  sm:grid sm:grid-cols-1 py-0 xl:py-16 lg:py-16 md:py-16 sm:py-5">
+        <Card
           cardLink="https://goremote.pro"
           title="GoRemote"
           subTitle="1,800+ monthly visitors"
           description="Place to find remote work. Work from anywhere or hire top talent."
           img="images/GoRemote.png"
           imgAlt="Preview of the project"
-        /> */}
+        />
       </div>
     </div>
   );
