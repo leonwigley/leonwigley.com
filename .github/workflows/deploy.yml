@@ -29,7 +29,7 @@ jobs:
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
-          project: "leonwigley-leonwigleyc-85"
+          project: "leonwigley"
           entrypoint: "main.ts"
           root: "."
           
