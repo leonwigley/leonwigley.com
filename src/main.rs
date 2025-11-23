@@ -1,6 +1,8 @@
-use actix_files::Files;
 use actix_files::NamedFile;
-use actix_web::{App, HttpRequest, HttpServer, Result, http::header};
+use actix_web::{
+    App, HttpRequest, HttpServer, Responder, Result, http::StatusCode, http::header, middleware,
+    web,
+};
 
 async fn pdf_handler(_req: HttpRequest) -> Result<NamedFile> {
     let file = NamedFile::open("./public/assets/resume.pdf")?;
@@ -12,26 +14,30 @@ async fn pdf_handler(_req: HttpRequest) -> Result<NamedFile> {
         }))
 }
 
+async fn not_found(_req: HttpRequest) -> Result<impl actix_web::Responder> {
+    let file = NamedFile::open("./public/404.html")?.use_last_modified(true);
+
+    Ok(file.customize().with_status(StatusCode::NOT_FOUND))
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
-            // Cache-Control
             .wrap(
-                actix_web::middleware::DefaultHeaders::new()
+                middleware::DefaultHeaders::new()
                     .add((header::CACHE_CONTROL, "public, max-age=31536000, immutable")),
             )
-            // PDF route
-            .route("/resume.pdf", actix_web::web::get().to(pdf_handler))
-            // Public
+            .route("/resume.pdf", web::get().to(pdf_handler))
             .service(
-                Files::new("/", "./public")
+                actix_files::Files::new("/", "./public")
                     .index_file("index.html")
                     .use_last_modified(true)
                     .use_etag(true)
                     .prefer_utf8(true)
                     .redirect_to_slash_directory(),
             )
+            .default_service(web::route().to(not_found))
     })
     .bind(("localhost", 3000))?
     .run()

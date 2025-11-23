@@ -3,6 +3,14 @@ name = "leonwigley"
 version = "0.1.0"
 edition = "2024"
 
+[profile.release]
+opt-level = 3      # "z" for size, 3 for max speed
+lto = true            # Enable Link Time Optimization
+codegen-units = 1     # Better optimizations (slower compile)
+panic = 'abort'       # Smaller, faster binary if you don’t need unwinding
+
+
 [dependencies]
 actix-web = "4"
 actix-files = "0.6"
+
