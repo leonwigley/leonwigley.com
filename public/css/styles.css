@@ -31,11 +31,12 @@ a {
 .container {
   margin: 0 auto;
   max-width: 1024px;
-
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .content {
-  height: 100vh;
   padding: 3rem 2rem;
   display: flex;
   flex: 1;
