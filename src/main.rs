@@ -1,9 +1,9 @@
-use std::env;
 use actix_files::NamedFile;
 use actix_web::{
     App, HttpRequest, HttpServer, Responder, Result, http::StatusCode, http::header, middleware,
     web,
 };
+use std::env;
 
 async fn pdf_handler(_req: HttpRequest) -> Result<NamedFile> {
     let file = NamedFile::open("./public/assets/resume.pdf")?;
@@ -23,10 +23,12 @@ async fn not_found(_req: HttpRequest) -> Result<impl actix_web::Responder> {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-        let port: u16 = env::var("PORT")
+    let port: u16 = env::var("PORT")
         .unwrap_or_else(|_| "3000".to_string())
         .parse()
         .expect("PORT must be a number");
+
+    println!("Server started on: http://localhost:{port}/");
 
     HttpServer::new(|| {
         App::new()
