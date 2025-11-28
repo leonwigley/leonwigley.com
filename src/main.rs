@@ -1,3 +1,4 @@
+use std::env;
 use actix_files::NamedFile;
 use actix_web::{
     App, HttpRequest, HttpServer, Responder, Result, http::StatusCode, http::header, middleware,
@@ -22,6 +23,11 @@ async fn not_found(_req: HttpRequest) -> Result<impl actix_web::Responder> {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+        let port: u16 = env::var("PORT")
+        .unwrap_or_else(|_| "3000".to_string())
+        .parse()
+        .expect("PORT must be a number");
+
     HttpServer::new(|| {
         App::new()
             .wrap(
@@ -39,7 +45,7 @@ async fn main() -> std::io::Result<()> {
             )
             .default_service(web::route().to(not_found))
     })
-    .bind(("localhost", 3000))?
+    .bind(("0.0.0.0", port))?
     .run()
     .await
 }
