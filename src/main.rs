@@ -1,48 +1,99 @@
-use actix_files::NamedFile;
-use actix_web::{
-    App, HttpRequest, HttpServer, Responder, Result, http::StatusCode, http::header, web,
+use axum::{
+    Router,
+    http::{HeaderValue, StatusCode, Uri},
+    response::{IntoResponse, Response},
+    routing::get,
 };
-use std::env;
+use std::{env, net::SocketAddr};
+use tokio::fs;
 
-async fn pdf_handler(_req: HttpRequest) -> Result<NamedFile> {
-    let file = NamedFile::open("./public/assets/resume.pdf")?;
-    Ok(file
-        .use_last_modified(true)
-        .set_content_disposition(header::ContentDisposition {
-            disposition: header::DispositionType::Inline,
-            parameters: vec![],
-        }))
-}
-
-async fn not_found(_req: HttpRequest) -> Result<impl actix_web::Responder> {
-    let file = NamedFile::open("./public/404.html")?.use_last_modified(true);
-
-    Ok(file.customize().with_status(StatusCode::NOT_FOUND))
-}
-
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
+#[tokio::main]
+async fn main() {
     let port: u16 = env::var("PORT")
-        .unwrap_or_else(|_| "3000".to_string())
+        .unwrap_or_else(|_| "3000".into())
         .parse()
-        .expect("PORT must be a number");
+        .unwrap();
 
-    println!("Server started on: http://localhost:{port}/");
+    println!("Server running at http://localhost:{port}/");
 
-    HttpServer::new(|| {
-        App::new()
-            .route("/resume.pdf", web::get().to(pdf_handler))
-            .service(
-                actix_files::Files::new("/", "./public")
-                    .index_file("index.html")
-                    .use_last_modified(true)
-                    .use_etag(true)
-                    .prefer_utf8(true)
-                    .redirect_to_slash_directory(),
+    let app = Router::new()
+        .route("/resume.pdf", get(resume_pdf))
+        .fallback(get(static_file));
+
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+
+    axum::serve(listener, app).await.unwrap();
+}
+
+fn mime_from_path(path: &str) -> &'static str {
+    if path.ends_with(".html") {
+        "text/html"
+    } else if path.ends_with(".css") {
+        "text/css"
+    } else if path.ends_with(".js") {
+        "application/javascript"
+    } else if path.ends_with(".png") {
+        "image/png"
+    } else if path.ends_with(".jpg") || path.ends_with(".jpeg") {
+        "image/jpeg"
+    } else if path.ends_with(".svg") {
+        "image/svg+xml"
+    } else if path.ends_with(".pdf") {
+        "application/pdf"
+    } else {
+        "application/octet-stream"
+    }
+}
+
+fn no_cache_headers() -> [(&'static str, &'static str); 1] {
+    [("Cache-Control", "no-store, no-cache, must-revalidate")]
+}
+
+async fn resume_pdf() -> impl IntoResponse {
+    match fs::read("./public/assets/resume.pdf").await {
+        Ok(bytes) => (
+            StatusCode::OK,
+            [
+                ("Content-Type", "application/pdf"),
+                ("Content-Disposition", "inline"),
+                no_cache_headers()[0],
+            ],
+            bytes,
+        )
+            .into_response(),
+        Err(_) => (StatusCode::NOT_FOUND, "File not found").into_response(),
+    }
+}
+
+async fn static_file(uri: Uri) -> Response {
+    let req_path = uri.path();
+
+    let path = if req_path == "/" {
+        "./public/index.html".to_string()
+    } else {
+        format!("./public{req_path}")
+    };
+
+    match fs::read(&path).await {
+        Ok(bytes) => (
+            StatusCode::OK,
+            [
+                ("Content-Type", mime_from_path(&path)),
+                no_cache_headers()[0],
+            ],
+            bytes,
+        )
+            .into_response(),
+
+        Err(_) => match fs::read("./public/404.html").await {
+            Ok(bytes) => (
+                StatusCode::NOT_FOUND,
+                [("Content-Type", "text/html"), no_cache_headers()[0]],
+                bytes,
             )
-            .default_service(web::route().to(not_found))
-    })
-    .bind(("0.0.0.0", port))?
-    .run()
-    .await
+                .into_response(),
+            Err(_) => (StatusCode::NOT_FOUND, "404 Not Found").into_response(),
+        },
+    }
 }

@@ -11,6 +11,5 @@ panic = 'abort'       # Smaller, faster binary if you don’t need unwinding
 
 
 [dependencies]
-actix-web = "4"
-actix-files = "0.6"
-
+axum = "0.7"
+tokio = { version = "1", features = ["full"] }
