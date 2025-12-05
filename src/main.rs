@@ -1,7 +1,6 @@
 use actix_files::NamedFile;
 use actix_web::{
-    App, HttpRequest, HttpServer, Responder, Result, http::StatusCode, http::header, middleware,
-    web,
+    App, HttpRequest, HttpServer, Responder, Result, http::StatusCode, http::header, web,
 };
 use std::env;
 
@@ -32,10 +31,6 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
-            .wrap(
-                middleware::DefaultHeaders::new()
-                    .add((header::CACHE_CONTROL, "public, max-age=31536000, immutable")),
-            )
             .route("/resume.pdf", web::get().to(pdf_handler))
             .service(
                 actix_files::Files::new("/", "./public")
