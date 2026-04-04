@@ -12,6 +12,5 @@ panic = 'abort'       # Smaller, faster binary if you don’t need unwinding
 
 [dependencies]
 axum = "0.7"
-handlebars = "6.4.0"
-serde_json = "1.0.149"
+tera = "1.20.0"
 tokio = { version = "1", features = ["full"] }

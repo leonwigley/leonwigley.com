@@ -33,18 +33,22 @@
     }
   </style>
 
+  {% block head %}{% endblock head %}
+
   <script type="importmap">
     {
       "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "PointerLockControls": "https://unpkg.com/three@0.160.0/examples/jsm/controls/PointerLockControls.js"
       }
     }
   </script>
 </head>
 
 <body>
-  {{{content}}}
+  {% block content %}{% endblock content %}
 
+  {% if show_background | default(value=true) %}
   <canvas id="three-canvas"></canvas>
 
   <script type="module">
@@ -88,6 +92,7 @@
 
     requestAnimationFrame(animate);
   </script>
+  {% endif %}
 </body>
 
 </html>

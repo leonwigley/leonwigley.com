@@ -5,30 +5,30 @@ use axum::{
     response::{Html, IntoResponse, Response},
     routing::get,
 };
-use handlebars::Handlebars;
-use serde_json::json;
 use std::{env, net::SocketAddr, sync::Arc};
+use tera::{Context, Tera};
 use tokio::fs;
 
-// 1. Define a state struct to share Handlebars across the app
+#[derive(Clone)]
 struct AppState {
-    hbs: Handlebars<'static>,
+    templates: Arc<Tera>,
+}
+
+impl AppState {
+    fn render(&self, template: &str, context: Context) -> Html<String> {
+        Html(
+            self.templates
+                .render(template, &context)
+                .unwrap_or_else(|e| format!("Template render error: {}", e)),
+        )
+    }
 }
 
 #[tokio::main]
 async fn main() {
-    // 2. Setup Handlebars
-    let mut hbs = Handlebars::new();
-    // Register the templates by name
-    hbs.register_template_file("layout", "./templates/layout.html")
-        .unwrap();
-    hbs.register_template_file("index", "./templates/index.html")
-        .unwrap();
-    hbs.register_template_file("404", "./templates/404.html")
-        .unwrap();
-
-    // Wrap in Arc for thread-safe sharing
-    let app_state = Arc::new(AppState { hbs });
+    // 2. Compile Tera templates
+    let templates = Arc::new(Tera::new("templates/**/*").expect("Failed to compile templates"));
+    let app_state = AppState { templates };
 
     let port: u16 = env::var("PORT")
         .unwrap_or_else(|_| "3000".into())
@@ -39,6 +39,8 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(index_handler))
+        .route("/ashley", get(ashley_handler))
+        .route("/game", get(game_handler))
         .route("/resume.pdf", get(resume_pdf))
         // The fallback handles all other paths (static files or 404s)
         .fallback(static_handler)
@@ -50,27 +52,24 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-// Helper function to render a page inside the layout
-fn render_page(hbs: &Handlebars, template_name: &str) -> String {
-    // 1. Render the inner content (index or 404)
-    let inner_content = hbs
-        .render(template_name, &json!({}))
-        .unwrap_or_else(|_| "Render error".to_string());
-
-    // 2. Render the layout and pass the inner content into the {{{content}}} variable
-    hbs.render("layout", &json!({ "content": inner_content }))
-        .unwrap_or_else(|e| format!("Layout render error: {}", e))
+// Handler for the Homepage
+async fn index_handler(State(state): State<AppState>) -> impl IntoResponse {
+    state.render("index.html", Context::new())
 }
 
-// Handler for the Homepage
-async fn index_handler(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    let body = render_page(&state.hbs, "index");
-    Html(body)
+async fn game_handler(State(state): State<AppState>) -> impl IntoResponse {
+    let mut context = Context::new();
+    context.insert("show_background", &false);
+    state.render("game.html", context)
+}
+
+async fn ashley_handler(State(state): State<AppState>) -> impl IntoResponse {
+    state.render("ashley.html", Context::new())
 }
 
 // Handler for Static Files (CSS, JS, Images)
 // If a file is not found, it renders the custom 404 template
-async fn static_handler(State(state): State<Arc<AppState>>, uri: Uri) -> Response {
+async fn static_handler(State(state): State<AppState>, uri: Uri) -> Response {
     let path = uri.path();
     let file_path = format!("./public{path}");
 
@@ -89,8 +88,7 @@ async fn static_handler(State(state): State<Arc<AppState>>, uri: Uri) -> Respons
         }
         Err(_) => {
             // File not found: Render the 404 Template
-            let body = render_page(&state.hbs, "404");
-            (StatusCode::NOT_FOUND, Html(body)).into_response()
+            state.render("404.html", Context::new()).into_response()
         }
     }
 }
