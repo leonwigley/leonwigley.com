@@ -41,7 +41,7 @@ async fn main() {
         .route("/", get(index_handler))
         .route("/ashley", get(ashley_handler))
         .route("/game", get(game_handler))
-        .route("/resume.pdf", get(resume_pdf))
+        .route("/cv.pdf", get(cv_pdf))
         // The fallback handles all other paths (static files or 404s)
         .fallback(static_handler)
         .with_state(app_state);
@@ -95,8 +95,8 @@ async fn static_handler(State(state): State<AppState>, uri: Uri) -> Response {
 
 // --- Keep existing helper functions ---
 
-async fn resume_pdf() -> impl IntoResponse {
-    match fs::read("./public/assets/resume.pdf").await {
+async fn cv_pdf() -> impl IntoResponse {
+    match fs::read("./public/assets/cv.pdf").await {
         Ok(bytes) => (
             StatusCode::OK,
             [
