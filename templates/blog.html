@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+  <div class="main">
+    <h1 class="title"><a href="/">blog</a></h1>
+    <div class="intro">
+      <p>thoughts that i feel should be written down</p>
+    </div>
+
+    <div class="blog-list">
+      {% if posts | length > 0 %}
+      {% for post in posts %}
+      <a href="/blog/{{ post.slug }}" class="blog-list-item">
+        <span>{{ post.title }}</span>
+        {% if post.date %}
+        <span class="blog-date">{{ post.date }}</span>
+        {% endif %}
+      </a>
+      {% endfor %}
+      {% else %}
+      <p>No posts yet. Add markdown files to <code>content/blog</code>.</p>
+      {% endif %}
+    </div>
+
+
+    <footer>
+      <a href="https://x.com/leonwigley" target="_blank">
+        x
+      </a>
+      <a href="https://github.com/leonwigley" target="_blank">
+        github
+      </a>
+      <a href="mailto:leoncharleswigley@gmail.com">email</a>
+      <a href="cv.pdf" target="_blank">
+        cv
+      </a>
+    </footer>
+  </div>
+</div>
+{% endblock content %}

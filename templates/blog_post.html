@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+  <div class="main">
+    <h1 class="title"><a href="/blog">blog</a></h1>
+    <div class="intro">
+      <p>{{ post.title }}</p>
+      {% if post.date %}
+      <p class="blog-date">{{ post.date }}</p>
+      {% endif %}
+    </div>
+    <article class="blog-post">{{ post.html | safe }}</article>
+
+    <footer>
+      <a href="/blog">all posts</a>
+      <a href="/">home</a>
+    </footer>
+  </div>
+</div>
+{% endblock content %}
